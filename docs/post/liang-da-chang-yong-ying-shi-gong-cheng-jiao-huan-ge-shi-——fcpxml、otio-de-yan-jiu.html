@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/39608175?v=4&size=256"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="我手头的视频生成项目现在面临交付到声音部门的“最后一公里”的问题。">
+<meta property="og:title" content="两大常用影视工程交换格式——fcpxml、otio的研究">
+<meta property="og:description" content="我手头的视频生成项目现在面临交付到声音部门的“最后一公里”的问题。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://drunkenQCat.github.io/post/liang-da-chang-yong-ying-shi-gong-cheng-jiao-huan-ge-shi-%E2%80%94%E2%80%94fcpxml%E3%80%81otio-de-yan-jiu.html">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/39608175?v=4&size=256">
+<title>两大常用影视工程交换格式——fcpxml、otio的研究</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">两大常用影视工程交换格式——fcpxml、otio的研究</h1>
+<div class="title-right">
+    <a href="https://drunkenQCat.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/drunkenQCat/drunkenQCat.github.io/issues/2" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><p>我手头的视频生成项目现在面临交付到声音部门的“最后一公里”的问题。手动把生成的音频拉到达芬奇，转成AAF，效率不怎么高。需要手动创建轨道，手动排查clip重叠，还可能出错。当前还是整个办公室通力完成一个人物声音的生成，之后若是生成多个人物，可想而知工作量会成倍增加。</p>
+<h2>狗屎fcpxml</h2>
+<p>生成fcpxml的方案经过我数十小时的研究，被我放弃了。</p>
+<p>首先达芬奇生成的fcpxml，必须是一个图像下“包裹”一个音频数组。如果没有图像，那就用Gap做占位符代替图像。这已经是fcpxml官方文档里没有提过的情形了。</p>
+<p>其次，但凡有多于一条视频，达芬奇就会在其他音频clip产生大量诡异的时间。比如在第一条普通的视频下叠放的音频<del>超量素材</del>jj，<code class="notranslate">start</code>和<code class="notranslate">offset</code>是一致的：</p>
+<blockquote>
+<p>注意以下xml片段均已变换为时间码</p>
+</blockquote>
+<div class="highlight highlight-text-xml"><pre class="notranslate">&lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:00.000<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:00.000<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>01:12:15.458<span class="pl-pds">"</span></span> <span class="pl-e">format</span>=<span class="pl-s"><span class="pl-pds">"</span>r1<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r2<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">tcFormat</span>=<span class="pl-s"><span class="pl-pds">"</span>NDF<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>马东锡 坏家伙.mp4<span class="pl-pds">"</span></span>&gt;
+    &lt;<span class="pl-ent">adjust-transform</span> <span class="pl-e">scale</span>=<span class="pl-s"><span class="pl-pds">"</span>1 1<span class="pl-pds">"</span></span> <span class="pl-e">anchor</span>=<span class="pl-s"><span class="pl-pds">"</span>0 0<span class="pl-pds">"</span></span> <span class="pl-e">position</span>=<span class="pl-s"><span class="pl-pds">"</span>0 0<span class="pl-pds">"</span></span> /&gt;
+    &lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:26.583<span class="pl-pds">"</span></span> <span class="pl-e">lane</span>=<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:26.583<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:01.458<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r6<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>187_Young Libai_241221_02_4a8d_ZhangJian.wav<span class="pl-pds">"</span></span> /&gt;
+    &lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:36.500<span class="pl-pds">"</span></span> <span class="pl-e">lane</span>=<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:36.500<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:04.625<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r7<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>189_Young Libai_241220_17_847e_ZhangJian.wav<span class="pl-pds">"</span></span> /&gt;
+    &lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:42.500<span class="pl-pds">"</span></span> <span class="pl-e">lane</span>=<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>00:14:42.500<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:02.583<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r8<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>191_Young Libai_241220_21_ca86_ZhangJian.wav<span class="pl-pds">"</span></span> /&gt;
+......
+	  &lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>00:21:19.167<span class="pl-pds">"</span></span> <span class="pl-e">lane</span>=<span class="pl-s"><span class="pl-pds">"</span>15<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>00:21:19.167<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:03.167<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r612<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>287_Young Libai_241223_16_e553_ZhangJian.wav<span class="pl-pds">"</span></span> /&gt;
+&lt;/<span class="pl-ent">asset-clip</span>&gt;</pre></div>
+<p>但是，倘若将目光投向下一个Clip：</p>
+<div class="highlight highlight-text-xml"><pre class="notranslate">&lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>01:00:00.000<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>01:12:15.458<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>01:02:42.792<span class="pl-pds">"</span></span> <span class="pl-e">format</span>=<span class="pl-s"><span class="pl-pds">"</span>r0<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r3<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">tcFormat</span>=<span class="pl-s"><span class="pl-pds">"</span>NDF<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>ChangAn_LowRes.mp4<span class="pl-pds">"</span></span>&gt;
+    &lt;<span class="pl-ent">adjust-transform</span> <span class="pl-e">scale</span>=<span class="pl-s"><span class="pl-pds">"</span>1 1<span class="pl-pds">"</span></span> <span class="pl-e">anchor</span>=<span class="pl-s"><span class="pl-pds">"</span>0 0<span class="pl-pds">"</span></span> <span class="pl-e">position</span>=<span class="pl-s"><span class="pl-pds">"</span>0 0<span class="pl-pds">"</span></span> /&gt;
+    &lt;<span class="pl-ent">asset-clip</span> <span class="pl-e">start</span>=<span class="pl-s"><span class="pl-pds">"</span>01:39:18.583<span class="pl-pds">"</span></span> <span class="pl-e">lane</span>=<span class="pl-s"><span class="pl-pds">"</span>2<span class="pl-pds">"</span></span> <span class="pl-e">offset</span>=<span class="pl-s"><span class="pl-pds">"</span>01:27:03.125<span class="pl-pds">"</span></span> <span class="pl-e">duration</span>=<span class="pl-s"><span class="pl-pds">"</span>00:00:05.375<span class="pl-pds">"</span></span> <span class="pl-e">ref</span>=<span class="pl-s"><span class="pl-pds">"</span>r60<span class="pl-pds">"</span></span> <span class="pl-e">enabled</span>=<span class="pl-s"><span class="pl-pds">"</span>1<span class="pl-pds">"</span></span> <span class="pl-e">name</span>=<span class="pl-s"><span class="pl-pds">"</span>1744_Mid-age Libai_241224_14_9860_ZhangJian.wav<span class="pl-pds">"</span></span> /&gt;</pre></div>
+<p><strong>噔噔咚！</strong> surprise！第一个音频clip就出现了start 不等于 offset 的诡异情形。这反直觉得很，因为start是音频文件的时间码，offset是音频Clip在轨道上的位置。通过时码同步之后，两个值应该相等。但这个<code class="notranslate">01:27:03.125</code>就好像是他妈的天外来客，我根本不知道这是怎么算出来的，帧数相除都是他妈一个丑陋之极的数字。这样的外星数学在生成的文件中比比皆是，令人触目惊心。</p>
+<p>除此之外，fcpxml原生似乎是没有“轨道”这个概念的。于是达芬奇的音频clip就都多了一个属性：<code class="notranslate">lane</code>，对应达芬奇中音频所在的轨道。但诡异的事情就在这里，达芬奇给了音频lane，但视频，没有lane。是的，视频没有轨道。我根本没法从xml里预测画面，以及画面携带的声音会在哪个轨道上出现。</p>
+<p>虽然目前可以将用Gap套音频Clip保证时间码正常，但我觉得如果再用这种给外星人准备的格式，会给后续维护带来成吨的负担。</p>
+<h2>Otio 是救世主吗？</h2>
+<p>当我跟我校优秀校友白龙说，我要写otio，他锐评：</p>
+<blockquote>
+<p>otio支持更是一坨<br>
+大家的实现非常迥异<br>
+兼容性一塌糊涂</p>
+</blockquote>
+<p>这虽然也有些难绷，但想想fcpxml的外星数字，以及达芬奇脚本API的诡异设计，我认为有Track对象的交换格式才是好格式（咬牙切齿）。</p>
+<p>但当我上手的时候，我遇到了第一个麻烦。OpenTimelineIO是跨语言编译的轮子，和达芬奇脚本一样，它默认没有存根。没有存根就意味着所有操作返回的类型都会是Unknown，意味着没有自动补全，意味着写一步就得看一步文档。有人在二月份<a href="https://github.com/AcademySoftwareFoundation/OpenTimelineIO/issues/1702" data-hovercard-type="issue" data-hovercard-url="/AcademySoftwareFoundation/OpenTimelineIO/issues/1702/hovercard">讨论了存根的问题</a>，但至今未见某个commit或是pr提到过过存根或是类型提示。</p>
+<p>很要命，但也不是不能写。先走一步看一步了。</p>
+<h3>生成存根</h3>
+<p>我用官方文档，喂给cursor，生成了一部分存根。</p>
+<h3>Timeline</h3>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Timeline</span>(<span class="pl-s1">name</span><span class="pl-c1">=</span><span class="pl-s">'Generated with randomotio.py'</span>, <span class="pl-s1">tracks</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Stack</span>(<span class="pl-s1">name</span><span class="pl-c1">=</span><span class="pl-s">'tracks'</span>, <span class="pl-s1">children</span><span class="pl-c1">=</span>[], <span class="pl-s1">source_range</span><span class="pl-c1">=</span><span class="pl-c1">None</span>, <span class="pl-s1">metadata</span><span class="pl-c1">=</span>{
+<span class="pl-s">'Random OTIO'</span>: {<span class="pl-s">'version'</span>: <span class="pl-s">'0.1.0'</span>}}))</pre></div>
+<h3>第一次失败</h3>
+<p>使用randomotio.py生成文件，raven上没有显示任何clip。附代码：</p>
+<div class="highlight highlight-source-python"><pre class="notranslate"><span class="pl-k">import</span> <span class="pl-s1">opentimelineio</span> <span class="pl-k">as</span> <span class="pl-s1">otio</span>
+<span class="pl-k">from</span> <span class="pl-s1">random</span> <span class="pl-k">import</span> <span class="pl-s1">randint</span>, <span class="pl-s1">choice</span>
+<span class="pl-k">import</span> <span class="pl-s1">os</span>
+<span class="pl-k">import</span> <span class="pl-s1">string</span>
+<span class="pl-k">import</span> <span class="pl-s1">datetime</span>
+
+
+<span class="pl-k">def</span> <span class="pl-en">_rand_string</span>(<span class="pl-s1">r</span><span class="pl-c1">=</span><span class="pl-c1">10</span>):
+    <span class="pl-s1">letters</span> <span class="pl-c1">=</span> <span class="pl-s1">string</span>.<span class="pl-c1">ascii_lowercase</span>
+    <span class="pl-s1">randString</span> <span class="pl-c1">=</span> <span class="pl-s">""</span>.<span class="pl-c1">join</span>(<span class="pl-en">choice</span>(<span class="pl-s1">letters</span>) <span class="pl-k">for</span> <span class="pl-s1">i</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">r</span>))
+
+    <span class="pl-k">return</span> <span class="pl-s1">randString</span>
+
+
+<span class="pl-k">def</span> <span class="pl-en">create_timeline</span>(<span class="pl-s1">global_start_hour</span>: <span class="pl-smi">int</span>, <span class="pl-s1">fps</span>: <span class="pl-smi">int</span>) <span class="pl-c1">-&gt;</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Timeline</span>:
+    <span class="pl-s">"""</span>
+<span class="pl-s">    创建一个新的 OTIO 时间轴并设置元数据和全局起始时间。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param global_start_hour: 时间轴的全局起始时间（小时）。</span>
+<span class="pl-s">    :param fps: 时间轴的帧率。</span>
+<span class="pl-s">    :return: 一个 OTIO 时间轴实例。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-c"># 创建时间轴实例并设置名称</span>
+    <span class="pl-s1">timeline</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Timeline</span>()
+    <span class="pl-s1">timeline</span>.<span class="pl-c1">name</span> <span class="pl-c1">=</span> <span class="pl-s">"Generated with randomotio.py"</span>
+
+    <span class="pl-c"># 设置全局起始时间</span>
+    <span class="pl-s1">seconds</span> <span class="pl-c1">=</span> <span class="pl-s1">global_start_hour</span> <span class="pl-c1">*</span> <span class="pl-c1">60</span><span class="pl-c1">**</span><span class="pl-c1">2</span>
+    <span class="pl-s1">hour_one_frames</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">to_frames</span>(
+        <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-s1">value</span><span class="pl-c1">=</span><span class="pl-s1">seconds</span>), <span class="pl-s1">rate</span><span class="pl-c1">=</span><span class="pl-s1">fps</span>
+    )
+    <span class="pl-s1">timeline</span>.<span class="pl-c1">global_start_time</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-s1">hour_one_frames</span>, <span class="pl-s1">fps</span>)
+
+    <span class="pl-c"># 添加元数据</span>
+    <span class="pl-s1">timeline</span>.<span class="pl-c1">metadata</span>[<span class="pl-s">"Random OTIO"</span>] <span class="pl-c1">=</span> {<span class="pl-s">"version"</span>: <span class="pl-s">"0.1.0"</span>}
+    <span class="pl-k">return</span> <span class="pl-s1">timeline</span>
+
+
+<span class="pl-k">def</span> <span class="pl-en">create_tracks</span>(<span class="pl-s1">trk_count</span>: <span class="pl-smi">int</span>) <span class="pl-c1">-&gt;</span> <span class="pl-s1">list</span>[<span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Track</span>]:
+    <span class="pl-s">"""</span>
+<span class="pl-s">    创建指定数量的空 OTIO 轨道。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param trk_count: 要创建的轨道数量。</span>
+<span class="pl-s">    :return: 一个包含 OTIO 轨道实例的列表。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-c"># 创建指定数量的轨道</span>
+    <span class="pl-k">return</span> [<span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Track</span>() <span class="pl-k">for</span> <span class="pl-s1">_</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">trk_count</span>)]
+
+
+<span class="pl-k">def</span> <span class="pl-en">populate_track_with_clips</span>(
+    <span class="pl-s1">track</span>: <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Track</span>, <span class="pl-s1">clp_count</span>: <span class="pl-smi">int</span>, <span class="pl-s1">fps</span>: <span class="pl-smi">int</span>, <span class="pl-s1">max_tc</span>: <span class="pl-smi">int</span>
+):
+    <span class="pl-s">"""</span>
+<span class="pl-s">    为指定的轨道添加剪辑和间隙。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param track: 要填充的 OTIO 轨道。</span>
+<span class="pl-s">    :param clp_count: 要添加到轨道中的剪辑数量。</span>
+<span class="pl-s">    :param fps: 剪辑的帧率。</span>
+<span class="pl-s">    :param max_tc: 剪辑来源范围的最大时间码。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-k">for</span> <span class="pl-s1">_</span> <span class="pl-c1">in</span> <span class="pl-en">range</span>(<span class="pl-s1">clp_count</span>):
+        <span class="pl-s1">clip</span> <span class="pl-c1">=</span> <span class="pl-en">create_random_clip</span>(<span class="pl-s1">fps</span>, <span class="pl-s1">max_tc</span>)
+        <span class="pl-s1">track</span>.<span class="pl-c1">append</span>(<span class="pl-s1">clip</span>)
+
+        <span class="pl-c"># TODO: 还要在Resource里提前算好Gap，不，直接做成dict[str, dict[Clip/ExternalReference, Gap]]</span>
+        <span class="pl-c"># 创建随机间隙 (Gap)</span>
+        <span class="pl-k">if</span> <span class="pl-en">randint</span>(<span class="pl-c1">0</span>, <span class="pl-c1">1</span>) <span class="pl-c1">==</span> <span class="pl-c1">1</span>:
+            <span class="pl-s1">gap</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Gap</span>()
+            <span class="pl-s1">gap_duration</span> <span class="pl-c1">=</span> <span class="pl-s1">clip</span>.<span class="pl-c1">source_range</span>.<span class="pl-c1">duration</span>
+            <span class="pl-s1">gap</span>.<span class="pl-c1">source_range</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">TimeRange</span>(<span class="pl-s1">duration</span><span class="pl-c1">=</span><span class="pl-s1">gap_duration</span>)
+            <span class="pl-s1">gap</span>.<span class="pl-c1">name</span> <span class="pl-c1">=</span> <span class="pl-s">"Black"</span>
+            <span class="pl-s1">track</span>.<span class="pl-c1">append</span>(<span class="pl-s1">gap</span>)
+
+
+<span class="pl-k">def</span> <span class="pl-en">create_random_clip</span>(<span class="pl-s1">fps</span>: <span class="pl-smi">int</span>, <span class="pl-s1">max_tc</span>: <span class="pl-smi">int</span>) <span class="pl-c1">-&gt;</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Clip</span>:
+    <span class="pl-s">"""</span>
+<span class="pl-s">    创建一个带有随机元数据和媒体引用的 OTIO 剪辑。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param fps: 剪辑的帧率。</span>
+<span class="pl-s">    :param max_tc: 剪辑来源范围的最大时间码。</span>
+<span class="pl-s">    :return: 一个 OTIO 剪辑实例。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-s1">clip</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Clip</span>()
+
+    <span class="pl-c"># 随机生成剪辑名称</span>
+    <span class="pl-s1">clip_name</span> <span class="pl-c1">=</span> <span class="pl-en">_rand_string</span>()
+    <span class="pl-s1">clip</span>.<span class="pl-c1">name</span> <span class="pl-c1">=</span> <span class="pl-s1">clip_name</span>
+
+    <span class="pl-c"># 设置剪辑的来源范围</span>
+    <span class="pl-s1">min_dur</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>
+    <span class="pl-s1">max_dur</span> <span class="pl-c1">=</span> <span class="pl-en">int</span>(<span class="pl-c1">10</span> <span class="pl-c1">*</span> <span class="pl-s1">fps</span>)
+    <span class="pl-s1">tc_in</span> <span class="pl-c1">=</span> <span class="pl-en">randint</span>(<span class="pl-c1">0</span>, <span class="pl-s1">max_tc</span>)
+    <span class="pl-c"># TODO: duration转换</span>
+    <span class="pl-s1">duration</span> <span class="pl-c1">=</span> <span class="pl-en">randint</span>(<span class="pl-s1">min_dur</span>, <span class="pl-s1">max_dur</span>)
+
+    <span class="pl-s1">clip</span>.<span class="pl-c1">source_range</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">TimeRange</span>(
+        <span class="pl-s1">start_time</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-s1">tc_in</span>, <span class="pl-s1">fps</span>),
+        <span class="pl-s1">duration</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-s1">duration</span>, <span class="pl-s1">fps</span>),
+    )
+
+    <span class="pl-c"># 添加虚拟媒体引用</span>
+    <span class="pl-s1">rand_path1</span> <span class="pl-c1">=</span> <span class="pl-en">_rand_string</span>(<span class="pl-c1">8</span>)
+    <span class="pl-s1">rand_path2</span> <span class="pl-c1">=</span> <span class="pl-en">_rand_string</span>(<span class="pl-c1">4</span>)
+    <span class="pl-c"># TODO: 音频文件路径</span>
+    <span class="pl-s1">url</span> <span class="pl-c1">=</span> <span class="pl-s1">os</span>.<span class="pl-c1">path</span>.<span class="pl-c1">join</span>(
+        <span class="pl-s">"/Volumes"</span>, <span class="pl-s">"FakeProject"</span>, <span class="pl-s1">rand_path1</span>, <span class="pl-s1">rand_path2</span>, <span class="pl-s1">clip_name</span> <span class="pl-c1">+</span> <span class="pl-s">".mov"</span>
+    )
+
+    <span class="pl-c"># TODO: 从fcpxml的Resource那儿偷代码，先做一个dict[str, ExternalReference]</span>
+    <span class="pl-s1">clip</span>.<span class="pl-c1">media_reference</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">ExternalReference</span>(
+        <span class="pl-s1">target_url</span><span class="pl-c1">=</span><span class="pl-s1">url</span>,
+        <span class="pl-s1">available_range</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">TimeRange</span>(
+            <span class="pl-s1">start_time</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-c1">0</span>, <span class="pl-s1">fps</span>),
+            <span class="pl-s1">duration</span><span class="pl-c1">=</span><span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-c1">86400</span>, <span class="pl-s1">fps</span>),
+        ),
+    )
+
+    <span class="pl-c"># TODO: 写上我的大名</span>
+    <span class="pl-c"># 添加剪辑元数据</span>
+    <span class="pl-s1">timestamp</span> <span class="pl-c1">=</span> <span class="pl-s1">datetime</span>.<span class="pl-c1">datetime</span>.<span class="pl-c1">now</span>()
+    <span class="pl-s1">clip</span>.<span class="pl-c1">metadata</span>[<span class="pl-s">"Random OTIO"</span>] <span class="pl-c1">=</span> {
+        <span class="pl-s">"Creation Time"</span>: <span class="pl-en">str</span>(<span class="pl-s1">timestamp</span>),
+        <span class="pl-s">"Generated By"</span>: <span class="pl-s">"randomotio.py"</span>,
+    }
+
+    <span class="pl-k">return</span> <span class="pl-s1">clip</span>
+
+
+<span class="pl-k">def</span> <span class="pl-en">set_track_source_range</span>(
+    <span class="pl-s1">track</span>: <span class="pl-s1">otio</span>.<span class="pl-c1">schema</span>.<span class="pl-c1">Track</span>, <span class="pl-s1">start_time</span>: <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>
+):
+    <span class="pl-s">"""</span>
+<span class="pl-s">    将轨道的来源范围设置为与全局起始时间匹配。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param track: 要更新的 OTIO 轨道。</span>
+<span class="pl-s">    :param start_time: 要设置的起始时间。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-s1">track</span>.<span class="pl-c1">source_range</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">TimeRange</span>(<span class="pl-s1">start_time</span>, <span class="pl-s1">track</span>.<span class="pl-c1">duration</span>())
+
+
+<span class="pl-k">def</span> <span class="pl-en">make_otio</span>(<span class="pl-s1">trk_count</span>: <span class="pl-smi">int</span>, <span class="pl-s1">clp_count</span>: <span class="pl-smi">int</span>, <span class="pl-s1">global_start_hour</span>: <span class="pl-smi">int</span>, <span class="pl-s1">fps</span>: <span class="pl-smi">int</span>):
+    <span class="pl-s">"""</span>
+<span class="pl-s">    生成一个包含随机轨道和剪辑的 OTIO 时间轴。</span>
+<span class="pl-s"></span>
+<span class="pl-s">    :param trk_count: 要创建的轨道数量。</span>
+<span class="pl-s">    :param clp_count: 每个轨道的剪辑数量。</span>
+<span class="pl-s">    :param global_start_hour: 时间轴的全局起始时间（小时）。</span>
+<span class="pl-s">    :param fps: 时间轴的帧率。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-s1">timeline</span> <span class="pl-c1">=</span> <span class="pl-en">create_timeline</span>(<span class="pl-s1">global_start_hour</span>, <span class="pl-s1">fps</span>)
+    <span class="pl-s1">tracks</span> <span class="pl-c1">=</span> <span class="pl-en">create_tracks</span>(<span class="pl-s1">trk_count</span>)
+
+    <span class="pl-c"># 每个轨道中填充随机剪辑和间隙</span>
+    <span class="pl-s1">hour_one_frames</span> <span class="pl-c1">=</span> <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">to_frames</span>(
+        <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-s1">global_start_hour</span> <span class="pl-c1">*</span> <span class="pl-c1">60</span><span class="pl-c1">**</span><span class="pl-c1">2</span>), <span class="pl-s1">rate</span><span class="pl-c1">=</span><span class="pl-s1">fps</span>
+    )
+    <span class="pl-k">for</span> <span class="pl-s1">track</span> <span class="pl-c1">in</span> <span class="pl-s1">tracks</span>:
+        <span class="pl-c"># TODO: 改成角色名-序号</span>
+        <span class="pl-s1">track</span>.<span class="pl-c1">name</span> <span class="pl-c1">=</span> <span class="pl-s">f"V<span class="pl-s1"><span class="pl-kos">{</span><span class="pl-s1">tracks</span>.<span class="pl-c1">index</span>(<span class="pl-s1">track</span>) <span class="pl-c1">+</span> <span class="pl-c1">1</span><span class="pl-kos">}</span></span>"</span>
+        <span class="pl-en">populate_track_with_clips</span>(<span class="pl-s1">track</span>, <span class="pl-s1">clp_count</span>, <span class="pl-s1">fps</span>, <span class="pl-s1">hour_one_frames</span>)
+        <span class="pl-en">set_track_source_range</span>(<span class="pl-s1">track</span>, <span class="pl-s1">otio</span>.<span class="pl-c1">opentime</span>.<span class="pl-c1">RationalTime</span>(<span class="pl-c1">-</span><span class="pl-s1">hour_one_frames</span>, <span class="pl-s1">fps</span>))
+        <span class="pl-s1">timeline</span>.<span class="pl-c1">tracks</span>.<span class="pl-c1">append</span>(<span class="pl-s1">track</span>)
+
+    <span class="pl-c"># 输出 OTIO 文件</span>
+    <span class="pl-s1">otio</span>.<span class="pl-c1">adapters</span>.<span class="pl-c1">write_to_file</span>(<span class="pl-s1">timeline</span>, <span class="pl-s">"random.otio"</span>)
+
+    <span class="pl-c"># 可以根据需要输出其他格式</span>
+    <span class="pl-c"># otio.adapters.write_to_file(timeline, 'random.xml')</span>
+    <span class="pl-c"># if trk_count == 1:</span>
+    <span class="pl-c">#     otio.adapters.write_to_file(timeline, 'random.edl')</span>
+
+
+<span class="pl-k">def</span> <span class="pl-en">main</span>():
+    <span class="pl-s">"""</span>
+<span class="pl-s">    主函数，用于生成具有用户定义参数的随机 OTIO 时间轴。</span>
+<span class="pl-s">    """</span>
+    <span class="pl-c"># 设置参数</span>
+    <span class="pl-s1">trk_count</span> <span class="pl-c1">=</span> <span class="pl-c1">3</span>  <span class="pl-c"># 轨道数量</span>
+    <span class="pl-s1">clp_count</span> <span class="pl-c1">=</span> <span class="pl-c1">5</span>  <span class="pl-c"># 每个轨道的剪辑数量</span>
+    <span class="pl-s1">global_start_hour</span> <span class="pl-c1">=</span> <span class="pl-c1">1</span>  <span class="pl-c"># 时间轴全局起始时间（小时）</span>
+    <span class="pl-s1">fps</span> <span class="pl-c1">=</span> <span class="pl-c1">24</span>  <span class="pl-c"># 帧率</span>
+
+    <span class="pl-c"># 调用主函数生成时间轴</span>
+    <span class="pl-en">make_otio</span>(<span class="pl-s1">trk_count</span>, <span class="pl-s1">clp_count</span>, <span class="pl-s1">global_start_hour</span>, <span class="pl-s1">fps</span>)
+
+
+<span class="pl-k">if</span> <span class="pl-s1">__name__</span> <span class="pl-c1">==</span> <span class="pl-s">"__main__"</span>:
+    <span class="pl-en">main</span>()</pre></div></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://drunkenQCat.github.io">量子猫的酿造小屋</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","drunkenQCat/drunkenQCat.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
