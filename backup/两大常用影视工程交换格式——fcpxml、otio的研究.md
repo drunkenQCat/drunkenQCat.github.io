@@ -38,19 +38,15 @@
 
 这虽然也有些难绷，但想想fcpxml的外星数字，以及达芬奇脚本API的诡异设计，我认为有Track对象的交换格式才是好格式（咬牙切齿）。
 
+### 生成存根
+
 但当我上手的时候，我遇到了第一个麻烦。OpenTimelineIO是跨语言编译的轮子，和达芬奇脚本一样，它默认没有存根。没有存根就意味着所有操作返回的类型都会是Unknown，意味着没有自动补全，意味着写一步就得看一步文档。有人在二月份[讨论了存根的问题](https://github.com/AcademySoftwareFoundation/OpenTimelineIO/issues/1702)，但至今未见某个commit或是pr提到过过存根或是类型提示。
 
-很要命，但也不是不能写。先走一步看一步了。
+最后我发现了[pybind11存根生成器](https://github.com/sizmailov/pybind11-stubgen)，只需要运行`pybind11-stubgen opentimelineio`，就会在`stub/opentimelineio`生成存根文件。将`opentimelineio`文件夹移动到根目录，LSP就会有类型提示了。
 
-### 生成存根
-我用官方文档，喂给cursor，生成了一部分存根。
+### 生成
 
-### Timeline
-```python
-otio.schema.Timeline(name='Generated with randomotio.py', tracks=otio.schema.Stack(name='tracks', children=[], source_range=None, metadata={
-'Random OTIO': {'version': '0.1.0'}}))
-```
+使用[randomotio.py](https://github.com/IgorRidanovic/randomOTIO)生成文件，Raven上没有显示任何clip。但在Davinci Resolve中，可以正常导入。那可能说明
+现版本Raven要读otio，文件路径必须有效。这点需要进一步验证。
 
-### 第一次失败
-
-使用randomotio.py生成文件，raven上没有显示任何clip。附代码：
+不管怎么说，以randomotio为基础，就可以写更具体的功能。
