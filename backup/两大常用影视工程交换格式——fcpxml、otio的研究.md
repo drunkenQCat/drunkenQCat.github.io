@@ -88,3 +88,9 @@
 ...
 ```
 注意，若是Clip的通道数多于轨道，则会让Track轨道跟随Clip的通道数类型。例如：轨道设定Mono，但是因为clip有Stereo的音频，会让轨道回退到Stereo。
+
+### RationalTime要点
+
+* value是灵活的，不一定是秒数
+    * 当frame_rate不为空，则为帧数
+    * 反之则为秒数
