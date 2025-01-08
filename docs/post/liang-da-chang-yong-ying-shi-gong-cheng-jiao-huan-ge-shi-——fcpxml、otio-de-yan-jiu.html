@@ -120,7 +120,43 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <h3>生成</h3>
 <p>使用<a href="https://github.com/IgorRidanovic/randomOTIO">randomotio.py</a>生成文件，Raven上没有显示任何clip。但在Davinci Resolve中，可以正常导入。那可能说明<br>
 现版本Raven要读otio，文件路径必须有效。这点需要进一步验证。</p>
-<p>不管怎么说，以randomotio为基础，就可以写更具体的功能。</p></div>
+<p>不管怎么说，以randomotio为基础，就可以写更具体的功能。</p>
+<h3>达芬奇的方言</h3>
+<ul>
+<li>轨道通道数：</li>
+</ul>
+<div class="highlight highlight-source-json"><pre class="notranslate">{
+    <span class="pl-ent">"OTIO_SCHEMA"</span>: <span class="pl-s"><span class="pl-pds">"</span>Track.1<span class="pl-pds">"</span></span>,
+    <span class="pl-ent">"metadata"</span>: {
+        <span class="pl-ent">"Resolve_OTIO"</span>: {
+            <span class="pl-ent">"Audio Type"</span>: <span class="pl-s"><span class="pl-pds">"</span>Stereo<span class="pl-pds">"</span></span>, <span class="pl-ii">// 轨道类型</span>
+            <span class="pl-ent">"Locked"</span>: <span class="pl-c1">false</span>,
+            <span class="pl-ent">"SoloOn"</span>: <span class="pl-c1">false</span>
+        }
+    },
+<span class="pl-ii">...</span></pre></div>
+<ul>
+<li>声音通道数：</li>
+</ul>
+<div class="highlight highlight-source-json"><pre class="notranslate">{
+    <span class="pl-ent">"OTIO_SCHEMA"</span>: <span class="pl-s"><span class="pl-pds">"</span>Clip.2<span class="pl-pds">"</span></span>,
+    <span class="pl-ent">"metadata"</span>: {
+        <span class="pl-ent">"Resolve_OTIO"</span>: {
+            <span class="pl-ent">"Channels"</span>: [ <span class="pl-ii">// Stereo音频，对应数组中两个元素</span>
+                {
+                    <span class="pl-ent">"Source Channel ID"</span>: <span class="pl-c1">0</span>, <span class="pl-ii">//源音频通道序号</span>
+                    <span class="pl-ent">"Source Track ID"</span>: <span class="pl-c1">0</span> <span class="pl-ii">//轨道中对应通道序号</span>
+                },
+                {
+                    <span class="pl-ent">"Source Channel ID"</span>: <span class="pl-c1">1</span>,
+                    <span class="pl-ent">"Source Track ID"</span>: <span class="pl-c1">0</span>
+                }
+            ],
+            <span class="pl-ent">"Link Group ID"</span>: <span class="pl-c1">2</span> <span class="pl-ii">// 链接组，一般是视频用</span>
+        }
+    },
+<span class="pl-ii">...</span></pre></div>
+<p>注意，若是Clip的通道数多于轨道，则会让Track轨道跟随Clip的通道数类型。例如：轨道设定Mono，但是因为clip有Stereo的音频，会让轨道回退到Stereo。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>

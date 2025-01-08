@@ -50,3 +50,41 @@
 现版本Raven要读otio，文件路径必须有效。这点需要进一步验证。
 
 不管怎么说，以randomotio为基础，就可以写更具体的功能。
+
+### 达芬奇的方言
+
+* 轨道通道数：
+```json
+{
+    "OTIO_SCHEMA": "Track.1",
+    "metadata": {
+        "Resolve_OTIO": {
+            "Audio Type": "Stereo", // 轨道类型
+            "Locked": false,
+            "SoloOn": false
+        }
+    },
+...
+```
+* 声音通道数：
+```json
+{
+    "OTIO_SCHEMA": "Clip.2",
+    "metadata": {
+        "Resolve_OTIO": {
+            "Channels": [ // Stereo音频，对应数组中两个元素
+                {
+                    "Source Channel ID": 0, //源音频通道序号
+                    "Source Track ID": 0 //轨道中对应通道序号
+                },
+                {
+                    "Source Channel ID": 1,
+                    "Source Track ID": 0
+                }
+            ],
+            "Link Group ID": 2 // 链接组，一般是视频用
+        }
+    },
+...
+```
+注意，若是Clip的通道数多于轨道，则会让Track轨道跟随Clip的通道数类型。例如：轨道设定Mono，但是因为clip有Stereo的音频，会让轨道回退到Stereo。
