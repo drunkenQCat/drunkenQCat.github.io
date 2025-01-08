@@ -91,6 +91,4 @@
 
 ### RationalTime要点
 
-* value是灵活的，不一定是秒数
-    * 当frame_rate不为空，则为帧数
-    * 反之则为秒数
+* value对应的是帧数，rate默认为1（1秒1帧）

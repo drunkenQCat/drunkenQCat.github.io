@@ -159,12 +159,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <p>注意，若是Clip的通道数多于轨道，则会让Track轨道跟随Clip的通道数类型。例如：轨道设定Mono，但是因为clip有Stereo的音频，会让轨道回退到Stereo。</p>
 <h3>RationalTime要点</h3>
 <ul>
-<li>value是灵活的，不一定是秒数
-<ul>
-<li>当frame_rate不为空，则为帧数</li>
-<li>反之则为秒数</li>
-</ul>
-</li>
+<li>value对应的是帧数，rate默认为1（1秒1帧）</li>
 </ul></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
