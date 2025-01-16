@@ -113,3 +113,5 @@
 第二个问题是帧率问题。otio-aaf-adapter会认轨道中第一个片段的帧率为轨道帧率，而我此前写的代码因为只考虑音频，所有片段帧率都是1，输出失败。
 
 改正之后，输出的aaf文件Pro Tools仍无法打开。遂开[issue](https://github.com/OpenTimelineIO/otio-aaf-adapter/issues/55)等待开发者回应。
+
+在等待回应的几个小时里，我又尝试运行了一个[两年前的样例](https://github.com/markreidvfx/otio_to_multi_aaf_alab_example?tab=readme-ov-file)，顺利通过不带aaf元数据的otio文件输出了aaf。这个aaf据作者视频演示，是可以在media composer中使用的。但在Pro Tools中仍然打开失败，遂放弃。

@@ -171,7 +171,8 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <p>我决定使用<a href="https://github.com/OpenTimelineIO/otio-aaf-adapter">otio-aaf-adapter</a>将我写的otio直接转换为AAF，省去达芬奇这一步。</p>
 <p>我遇到的第一个问题是<code class="notranslate">mobid</code>，这是aaf的一个类似于uuid的编号。otio-aaf-adapter默认是需要在otio中给每个片段都写一个mobid的，文件中没有就会崩溃。只要在运行<code class="notranslate">opentimelineio.adapters.write_to_file</code>时添加入参<code class="notranslate">use_empty_mob_ids=True</code>即可避免。</p>
 <p>第二个问题是帧率问题。otio-aaf-adapter会认轨道中第一个片段的帧率为轨道帧率，而我此前写的代码因为只考虑音频，所有片段帧率都是1，输出失败。</p>
-<p>改正之后，输出的aaf文件Pro Tools仍无法打开。遂开<a href="https://github.com/OpenTimelineIO/otio-aaf-adapter/issues/55" data-hovercard-type="issue" data-hovercard-url="/OpenTimelineIO/otio-aaf-adapter/issues/55/hovercard">issue</a>等待开发者回应。</p></div>
+<p>改正之后，输出的aaf文件Pro Tools仍无法打开。遂开<a href="https://github.com/OpenTimelineIO/otio-aaf-adapter/issues/55" data-hovercard-type="issue" data-hovercard-url="/OpenTimelineIO/otio-aaf-adapter/issues/55/hovercard">issue</a>等待开发者回应。</p>
+<p>在等待回应的几个小时里，我又尝试运行了一个<a href="https://github.com/markreidvfx/otio_to_multi_aaf_alab_example?tab=readme-ov-file">两年前的样例</a>，顺利通过不带aaf元数据的otio文件输出了aaf。这个aaf据作者视频演示，是可以在media composer中使用的。但在Pro Tools中仍然打开失败，遂放弃。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
