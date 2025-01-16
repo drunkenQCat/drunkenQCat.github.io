@@ -120,7 +120,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <h3>生成</h3>
 <p>使用<a href="https://github.com/IgorRidanovic/randomOTIO">randomotio.py</a>生成文件，Raven上没有显示任何clip。但在Davinci Resolve中，可以正常导入。那可能说明<br>
 现版本Raven要读otio，文件路径必须有效。这点需要进一步验证。</p>
-<p>不管怎么说，以randomotio为基础，就可以写更具体的功能。</p>
+<p>不管怎么说，以randomotio为基础，就可以写更具体的功能。最终写成了这个[audio_otio_composer]。(<a href="https://github.com/drunkenQCat/audio_otio_composer">https://github.com/drunkenQCat/audio_otio_composer</a>)</p>
 <h3>达芬奇的方言</h3>
 <ul>
 <li>轨道通道数：</li>
@@ -163,7 +163,15 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </ul>
 <h3>生成AAF时的离奇现象</h3>
 <p>出AAF没有声音。我花了两三个小时尽力让我生成的OTIO像达芬奇生成的，但就单单AAF格式，拼尽全力，没有声音，或是只有一部分有声。</p>
-<p>最后我迂回了一下，用达芬奇单出时间线的AAF文件，用 pro tools 存档声音工程，解决了交付的问题。</p></div>
+<p>最后我迂回了一下，用达芬奇单出时间线的AAF文件，用 pro tools 存档声音工程，解决了交付的问题。</p>
+<h3>使用otio-aaf-adapter转换为aaf的尝试</h3>
+<p>上一节中提到的方案虽然已经减少了我的工作量，但仍是复杂，我目前的交付工作流是：<br>
+<code class="notranslate">音频文件 -&gt; otio时间线 -&gt; 达芬奇工程 -&gt; AAF时间线 -&gt; Pro Tools 工程</code></p>
+<p>要有<code class="notranslate">AAF时间线 -&gt; Pro Tools 工程</code>这一步是因为这条工作流中，达芬奇输出的AAF时间线文件引用是绝对路径，与常规交付流程中的AAF有异，直接交付会引起录音师困惑。故转而交付Pro Tools工程。</p>
+<p>我决定使用<a href="https://github.com/OpenTimelineIO/otio-aaf-adapter">otio-aaf-adapter</a>将我写的otio直接转换为AAF，省去达芬奇这一步。</p>
+<p>我遇到的第一个问题是<code class="notranslate">mobid</code>，这是aaf的一个类似于uuid的编号。otio-aaf-adapter默认是需要在otio中给每个片段都写一个mobid的，文件中没有就会崩溃。只要在运行<code class="notranslate">opentimelineio.adapters.write_to_file</code>时添加入参<code class="notranslate">use_empty_mob_ids=True</code>即可避免。</p>
+<p>第二个问题是帧率问题。otio-aaf-adapter会认轨道中第一个片段的帧率为轨道帧率，而我此前写的代码因为只考虑音频，所有片段帧率都是1，输出失败。</p>
+<p>改正之后，输出的aaf文件Pro Tools仍无法打开。遂开<a href="https://github.com/OpenTimelineIO/otio-aaf-adapter/issues/55" data-hovercard-type="issue" data-hovercard-url="/OpenTimelineIO/otio-aaf-adapter/issues/55/hovercard">issue</a>等待开发者回应。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>

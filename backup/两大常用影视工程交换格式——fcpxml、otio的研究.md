@@ -49,7 +49,7 @@
 使用[randomotio.py](https://github.com/IgorRidanovic/randomOTIO)生成文件，Raven上没有显示任何clip。但在Davinci Resolve中，可以正常导入。那可能说明
 现版本Raven要读otio，文件路径必须有效。这点需要进一步验证。
 
-不管怎么说，以randomotio为基础，就可以写更具体的功能。
+不管怎么说，以randomotio为基础，就可以写更具体的功能。最终写成了这个[audio_otio_composer]。(https://github.com/drunkenQCat/audio_otio_composer)
 
 ### 达芬奇的方言
 
@@ -98,3 +98,18 @@
 出AAF没有声音。我花了两三个小时尽力让我生成的OTIO像达芬奇生成的，但就单单AAF格式，拼尽全力，没有声音，或是只有一部分有声。
 
 最后我迂回了一下，用达芬奇单出时间线的AAF文件，用 pro tools 存档声音工程，解决了交付的问题。
+
+### 使用otio-aaf-adapter转换为aaf的尝试
+
+上一节中提到的方案虽然已经减少了我的工作量，但仍是复杂，我目前的交付工作流是：
+`音频文件 -> otio时间线 -> 达芬奇工程 -> AAF时间线 -> Pro Tools 工程`
+
+要有`AAF时间线 -> Pro Tools 工程`这一步是因为这条工作流中，达芬奇输出的AAF时间线文件引用是绝对路径，与常规交付流程中的AAF有异，直接交付会引起录音师困惑。故转而交付Pro Tools工程。
+
+我决定使用[otio-aaf-adapter](https://github.com/OpenTimelineIO/otio-aaf-adapter)将我写的otio直接转换为AAF，省去达芬奇这一步。
+
+我遇到的第一个问题是`mobid`，这是aaf的一个类似于uuid的编号。otio-aaf-adapter默认是需要在otio中给每个片段都写一个mobid的，文件中没有就会崩溃。只要在运行`opentimelineio.adapters.write_to_file`时添加入参`use_empty_mob_ids=True`即可避免。
+
+第二个问题是帧率问题。otio-aaf-adapter会认轨道中第一个片段的帧率为轨道帧率，而我此前写的代码因为只考虑音频，所有片段帧率都是1，输出失败。
+
+改正之后，输出的aaf文件Pro Tools仍无法打开。遂开[issue](https://github.com/OpenTimelineIO/otio-aaf-adapter/issues/55)等待开发者回应。
