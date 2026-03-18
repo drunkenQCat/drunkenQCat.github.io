@@ -372,7 +372,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 <a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/767ec028-645a-4c4d-a6ff-5fa8f23012dc"><img src="https://github.com/user-attachments/assets/767ec028-645a-4c4d-a6ff-5fa8f23012dc" alt="Image" style="max-width: 100%;"></a><br>
 <a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/34c46fe1-f267-425a-9b01-66686d77aaf4"><img src="https://github.com/user-attachments/assets/34c46fe1-f267-425a-9b01-66686d77aaf4" alt="Image" style="max-width: 100%;"></a><br>
 <a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/c99aa0f3-30dd-4fb8-a414-2bb487ca69b7"><img src="https://github.com/user-attachments/assets/c99aa0f3-30dd-4fb8-a414-2bb487ca69b7" alt="Image" style="max-width: 100%;"></a><br>
-<a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/f2cc39785115bbf720ca11d2d0a33687731e3a4d16d0c0b234975dba0b046e71/68747470733a2f2f692e706f7374696d672e63632f313337645a79714e2f696d6167652e706e67"><img src="https://camo.githubusercontent.com/f2cc39785115bbf720ca11d2d0a33687731e3a4d16d0c0b234975dba0b046e71/68747470733a2f2f692e706f7374696d672e63632f313337645a79714e2f696d6167652e706e67" alt="image.png" data-canonical-src="https://i.postimg.cc/137dZyqN/image.png" style="max-width: 100%;"></a></p></div>
+<a target="_blank" rel="noopener noreferrer nofollow" href="https://camo.githubusercontent.com/e2ea4a5754564a5904b7d44db4c22d53a81982542c0bd874d1586f5b394707c2/68747470733a2f2f692e706f7374696d672e63632f313337645a79714e2f696d6167652e706e67"><img src="https://camo.githubusercontent.com/e2ea4a5754564a5904b7d44db4c22d53a81982542c0bd874d1586f5b394707c2/68747470733a2f2f692e706f7374696d672e63632f313337645a79714e2f696d6167652e706e67" alt="image.png" data-canonical-src="https://i.postimg.cc/137dZyqN/image.png" style="max-width: 100%;"></a></p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
@@ -392,7 +392,7 @@ if(""!=""){
     var startSite=new Date("");
     var diff=now.getTime()-startSite.getTime();
     var diffDay=Math.floor(diff/(1000*60*60*24));
-    document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";
+    document.getElementById("runday").innerHTML="网站运行 "+diffDay+" 天"+" • ";
 }
 </script></div>
 </body>
@@ -437,6 +437,7 @@ document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
 function openComments(){
     cm=document.getElementById("comments");
     cmButton=document.getElementById("cmButton");
+    cmButton.disabled=true;
     cmButton.innerHTML="loading";
     span=document.createElement("span");
     span.setAttribute("class","AnimatedEllipsis");

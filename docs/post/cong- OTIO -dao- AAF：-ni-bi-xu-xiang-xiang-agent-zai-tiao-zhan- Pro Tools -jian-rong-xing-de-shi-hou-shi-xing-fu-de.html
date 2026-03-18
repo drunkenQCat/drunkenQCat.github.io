@@ -10,13 +10,17 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="使用`reapy.reascript_api`，pyright频频报错。">
-<meta property="og:title" content="关于Reascript存根的尝试">
-<meta property="og:description" content="使用`reapy.reascript_api`，pyright频频报错。">
+<meta name="description" content="## 摘要
+
+本文记录了一次 OTIO 转 AAF 的兼容性问题排查过程。">
+<meta property="og:title" content="从 OTIO 到 AAF：你必须想象agent在挑战 Pro Tools 兼容性的时候是幸福的">
+<meta property="og:description" content="## 摘要
+
+本文记录了一次 OTIO 转 AAF 的兼容性问题排查过程。">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://drunkenQCat.github.io/post/guan-yu-Reascript-cun-gen-de-chang-shi.html">
+<meta property="og:url" content="https://drunkenQCat.github.io/post/cong-%20OTIO%20-dao-%20AAF%EF%BC%9A-ni-bi-xu-xiang-xiang-agent-zai-tiao-zhan-%20Pro%20Tools%20-jian-rong-xing-de-shi-hou-shi-xing-fu-de.html">
 <meta property="og:image" content="https://avatars.githubusercontent.com/u/39608175?v=4&size=256">
-<title>关于Reascript存根的尝试</title>
+<title>从 OTIO 到 AAF：你必须想象agent在挑战 Pro Tools 兼容性的时候是幸福的</title>
 
 
 
@@ -49,7 +53,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 
 <body>
     <div id="header">
-<h1 class="postTitle">关于Reascript存根的尝试</h1>
+<h1 class="postTitle">从 OTIO 到 AAF：你必须想象agent在挑战 Pro Tools 兼容性的时候是幸福的</h1>
 <div class="title-right">
     <a href="https://drunkenQCat.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
         <svg class="octicon" width="16" height="16">
@@ -57,7 +61,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
         </svg>
     </a>
     
-    <a href="https://github.com/drunkenQCat/drunkenQCat.github.io/issues/3" target="_blank" class="btn btn-invisible circle" title="Issue">
+    <a href="https://github.com/drunkenQCat/drunkenQCat.github.io/issues/7" target="_blank" class="btn btn-invisible circle" title="Issue">
         <svg class="octicon" width="16" height="16">
             <path id="pathIssue" fill-rule="evenodd"></path>
         </svg>
@@ -73,13 +77,132 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><p>使用<code class="notranslate">reapy.reascript_api</code>，pyright频频报错。查看代码，发现这是个运行时才有方法的模块。寻互联网有无存根，无果。遂自行探索。</p>
+<div class="markdown-body" id="postBody"><h2>摘要</h2>
+<p>本文记录了一次 OTIO 转 AAF 的兼容性问题排查过程。问题表象是：开源库生成的 AAF 文件无法被 Pro Tools 正确读取，而 DaVinci Resolve 导出的文件则完全正常。排查过程中经历了工具链构建失败、无效的 Rust 重写尝试、结构对齐后的“假成功”，最终问题停留在一个无法解释的 30Hz 采样率异常上。</p>
+<p>整个过程没有明确的失败节点，也没有收敛路径，更多体现为一种持续的技术性无效努力。</p>
+<hr>
+<h2>一、问题背景与初步假设</h2>
+<p>当前工作流无法输出 Pro Tools 可识别的 AAF 文件。对比测试显示：</p>
+<ul>
+<li>DaVinci Resolve 导出的 AAF：可正常导入</li>
+<li>开源库生成的 AAF：无法打开</li>
+</ul>
+<p>初步判断为 AAF 结构或字段存在差异，因此采用“对齐标准输出”的策略，通过结构对比逐步修正。</p>
+<hr>
+<h2>二、工具链构建与分析方法</h2>
+<h3>2.1 AAF 分析工具的获取问题</h3>
+<p>为了分析 AAF 文件结构，需要使用官方工具进行解析。在 GitHub 上检索后发现缺乏可用的 Windows 预编译版本，因此改为自行构建。</p>
+<p>过程中遇到的问题包括：</p>
+<ul>
+<li>GitHub Actions 配置错误，仅成功构建 Linux 版本</li>
+<li>Windows 构建流程卡死，排查耗时较长</li>
+</ul>
+<p>在修正 CI 配置后，最终成功获取 Windows 版本工具 <code class="notranslate">dumpinfo</code>，用于结构化解析 AAF 文件。</p>
+<hr>
+<h3>2.2 一次无效的技术分支</h3>
+<p>在等待构建期间，尝试将原有 C++ AAF 库重写为 Rust 实现。该尝试由于缺乏充分设计与验证，很快失败，未产生可复用结果。</p>
+<p>该分支未对主问题产生实质帮助。</p>
+<hr>
+<h3>2.3 基于 dumpinfo 的对齐策略</h3>
+<p>后续采用如下调试方法：</p>
+<ul>
+<li>使用 <code class="notranslate">dumpinfo</code> 分别解析 DaVinci 输出与开源库输出</li>
+<li>构建自动化对比流程，由 Agent 进行多轮比对与修正</li>
+<li>逐步对齐字段、结构与引用关系</li>
+</ul>
+<p>在多轮迭代后，两者的 dump 输出已高度一致，未发现明显结构性差异。</p>
+<p>但 Pro Tools 仍然无法读取该文件。</p>
+<hr>
+<h2>三、逆向尝试与“假成功”</h2>
+<h3>3.1 调试思路转向</h3>
+<p>在结构对齐无效的情况下，尝试从 Pro Tools 内部入手，在其加载 AAF 的路径上设置断点，以观察解析流程。</p>
+<p>使用版本为 Pro Tools 12，并配合其源码进行调试。</p>
+<hr>
+<h3>3.2 异常现象</h3>
+<p>在准备调试时发现：</p>
+<ul>
+<li>Pro Tools 自带的 AAF 库</li>
+<li>与官方源码编译版本</li>
+</ul>
+<p>二者文件大小不一致。</p>
+<p>尝试将自编译库替换原库后，出现意外结果：</p>
+<blockquote>
+<p>Pro Tools 可以成功加载开源库生成的 AAF 文件</p>
+</blockquote>
+<hr>
+<h3>3.3 数据层面的错误</h3>
+<p>虽然文件可以打开，但内容异常：</p>
+<ul>
+<li>片段时间与位置正确</li>
+<li>音频播放速度严重降低</li>
+</ul>
+<p>进一步检查导入信息发现：</p>
+<blockquote>
+<p>音频采样率被识别为 30 Hz</p>
+</blockquote>
+<hr>
+<h2>四、30Hz 问题与排查失败</h2>
+<h3>4.1 参数验证</h3>
+<p>对所有相关字段进行排查：</p>
+<ul>
+<li>WAV Header：48000 Hz</li>
+<li>AAF WAVEDescriptor：48000 Hz</li>
+<li>Edit Rate：48000</li>
+</ul>
+<p>未发现任何字段包含“30”这一数值。</p>
+<hr>
+<h3>4.2 问题特征</h3>
+<p>该问题具有以下特征：</p>
+<ul>
+<li>无明确来源</li>
+<li>不存在直接字段映射</li>
+<li>无法通过结构对比发现</li>
+</ul>
+<p>即：</p>
+<blockquote>
+<p>错误存在于系统行为中，而非显式数据中</p>
+</blockquote>
+<hr>
+<h3>4.3 调试状态</h3>
+<p>尽管进行了大量比对与验证，该问题未能定位。理论上，通过进一步深入到二进制层或 Pro Tools 解析逻辑中，可能可以找到原因，但当前未继续推进。</p>
+<hr>
+<h2>五、技术总结</h2>
+<h3>5.1 OTIO 音频时长的潜在误用</h3>
+<p>DaVinci Resolve 导出的 OTIO 文件中：</p>
+<ul>
+<li><code class="notranslate">duration.rate</code> 表示视频帧率（如 24 或 30）</li>
+<li>而非音频采样率</li>
+</ul>
+<p>若直接用于采样计算，将导致音频速度异常。正确方式为：</p>
 <ol>
-<li>尝试使用<code class="notranslate">inspect</code>模块探查方法以及签名，但只有方法名，无签名</li>
-<li>尝试在Reaper内创建脚本，再度inspect，只能输出参数数量，签名不可见</li>
-<li>vscode有reascript插件，但似乎只支持lua和eel，遂放弃。</li>
+<li>通过帧数与帧率计算时长</li>
+<li>再乘以音频采样率（48000）得到采样数</li>
 </ol>
-<p>又见Reaper会自动生成运行时所有方法的文档，故觉可做爬虫取之为存根。</p></div>
+<hr>
+<h3>5.2 AAF Mob 写入顺序要求</h3>
+<p>Pro Tools 对 Mob 顺序存在隐性要求：</p>
+<ol>
+<li>CompositionMob</li>
+<li>MasterMob</li>
+<li>SourceMob（TapeDescriptor）</li>
+<li>SourceMob（WAVEDescriptor）</li>
+</ol>
+<p>顺序错误可能导致解析失败，即使字段完全正确。</p>
+<hr>
+<h3>5.3 WAVEDescriptor 的隐含依赖</h3>
+<p>以下字段虽非规范强制，但对 Pro Tools 解析至关重要：</p>
+<ul>
+<li>文件定位器（Locator）</li>
+<li>WAV 头摘要</li>
+</ul>
+<p>缺失这些信息可能导致文件被拒绝加载。</p>
+<hr>
+<h2>结语</h2>
+<p>这次调试最终停在了一个无法解释的结果上：30Hz。</p>
+<p>它不在任何已知字段中，也不在规范描述内，但确实影响了系统行为。问题没有被解决，路径也没有收敛。</p>
+<p>从工程角度来看，这是一类典型的“可解但未解”的问题：理论上存在答案，但在当前资源与时间约束下，不具备继续推进的价值。</p>
+<p>因此，它被保留在这里，作为一个未完成的状态。</p>
+<p>问题依然存在。</p></div>
 <div style="font-size:small;margin-top:8px;float:right;"></div>
 
 <button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
