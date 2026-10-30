@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/Primer/21.0.7/primer.css' rel='stylesheet' />
+    
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/39608175?v=4&size=256"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="这个项目是朋友委托我做的：给《怪物猎人》做一个肉鸽模式。">
+<meta property="og:title" content="选择框架是成功的一半：从《怪物猎人世界》到 REFramework，再给 Agent 写个 CLI">
+<meta property="og:description" content="这个项目是朋友委托我做的：给《怪物猎人》做一个肉鸽模式。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://drunkenQCat.github.io/post/xuan-ze-kuang-jia-shi-cheng-gong-de-yi-ban-%EF%BC%9A-cong-%E3%80%8A-guai-wu-lie-ren-shi-jie-%E3%80%8B-dao-%20REFramework%EF%BC%8C-zai-gei-%20Agent%20-xie-ge-%20CLI.html">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/39608175?v=4&size=256">
+<title>选择框架是成功的一半：从《怪物猎人世界》到 REFramework，再给 Agent 写个 CLI</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+.copy-feedback {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    color: var(--color-fg-on-emphasis);
+    background-color: var(--color-fg-muted);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">选择框架是成功的一半：从《怪物猎人世界》到 REFramework，再给 Agent 写个 CLI</h1>
+<div class="title-right">
+    <a href="https://drunkenQCat.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/drunkenQCat/drunkenQCat.github.io/issues/8" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><p>这个项目是朋友委托我做的：给《怪物猎人》做一个肉鸽模式。进斗技场、三选一决定下一波、打怪拿 PT、购买补给和增益，再继续往下打。</p>
+<p>他最初想做在《怪物猎人：世界》里。我也在《世界》上探索了几个星期，后来痛定思痛，换到了《怪物猎人：崛起》。再后来，为了让 Agent 真正能在游戏里干活，我又写了网页后端、原生插件和 CLI，最后连 REFramework 都 fork 了一份。</p>
+<p>回头看，这件事最值得分享的，首先是：<strong>选择框架是成功的一半。</strong> 选对框架以后，还得给 Agent 一条能操作、能观察、能拿到错误的开发通路。</p>
+<h2>一、在《世界》里，难点很快越过了框架已经铺好的路</h2>
+<p>《世界》使用 MT Framework。我当时选择的开发基础是 SharpPluginLoader，简称 SPL，项目用的是 C#／.NET 8 和 SPL 2.0.0。</p>
+<p>SPL 已经做了很多工作：插件加载、游戏事件、ImGui、常用游戏对象的包装、原生调用与 hook。它还保留了 MT Framework 的 DTI 类型信息，可以找类型、看继承关系、构造对象。把它理解成一个只能修改几个参数的小工具，会低估它。</p>
+<p>但程序性的肉鸽玩法，很快就会问到框架尚未替你回答的问题：如何在任务中加载新怪？构造对象之后，谁负责资源、AI、任务登记与死亡清理？原生结算应该在哪里拦截和恢复？</p>
+<p>看 SPL 的实现，能直观理解这条边界。</p>
+<p>它的原生地址仓库会读取 <code class="notranslate">AddressRecords.json</code>，根据游戏版本和记录文件的 hash 决定是否复用缓存，否则进行模式扫描。C# 包装再按名字取得对应地址。例如 <code class="notranslate">UnitManager</code> 内部把 <code class="notranslate">UnitManager:AddTop</code> 包装成了带明确参数类型的 <code class="notranslate">NativeFunction</code>，部分对象属性则使用已知的内存偏移。具体实现可以看 <a href="https://github.com/Fexty12573/SharpPluginLoader/blob/c16380a398c3252309ba94d1c154ad58f6ab5413/mhw-cs-plugin-loader/AddressRepository.cpp">AddressRepository.cpp</a> 和 <a href="https://github.com/Fexty12573/SharpPluginLoader/blob/c16380a398c3252309ba94d1c154ad58f6ab5413/SharpPluginLoader.Core/UnitManager.cs">UnitManager.cs</a>。</p>
+<p>这意味着，已经识别、封装好的功能很好用；需求落到覆盖范围之外，就得自己继续找地址、认参数、确认对象布局和调用时机。</p>
+<p>这里需要说准确：<strong>SPL 并不禁止调用它没收录的函数。</strong> 官方就有<a href="https://github.com/Fexty12573/SharpPluginLoader/blob/master/docs/Development/CallingNativeFuncs.md">直接调用原生函数</a>和 <a href="https://github.com/Fexty12573/SharpPluginLoader/blob/master/docs/Development/FunctionHooking.md">hook</a> 的方法。代价是，这些函数的地址和协议需要自己找出来。</p>
+<p>旧项目 <code class="notranslate">mhw-moddev</code> 里的探索就卡在这类问题上。我们尝试过：</p>
+<div class="highlight highlight-source-cs"><pre class="notranslate"><span class="pl-k">var</span> <span class="pl-s1">unit</span> <span class="pl-c1">=</span> <span class="pl-s1">UnitManager</span><span class="pl-kos">.</span><span class="pl-en">NewUnit</span><span class="pl-kos">(</span><span class="pl-s1">dti</span><span class="pl-kos">)</span><span class="pl-kos">;</span>
+<span class="pl-s1">UnitManager</span><span class="pl-kos">.</span><span class="pl-en">AddTop</span><span class="pl-kos">(</span><span class="pl-s1">unit</span><span class="pl-kos">,</span> <span class="pl-s1">line</span><span class="pl-kos">,</span> <span class="pl-s1">group</span><span class="pl-kos">)</span><span class="pl-kos">;</span></pre></div>
+<p>SPL 的 <code class="notranslate">NewUnit</code> 实现主要是通过 DTI 创建实例，源码还明确提醒，它不会自动把对象注册进更新 line。即使再调用 <code class="notranslate">AddTop</code>，也不能据此认为已经完成“加载并生成一只可正常战斗的任务首领”。旧项目后来又转向任务出怪表，维护特定版本的地址和候选偏移，继续找完整的原生流程。</p>
+<p>这些工作可以做，但每往外走一步，探索成本都在增加。</p>
+<p>社区也并非没有复杂 mod。我们实际看过动画查看器、自定义动作、自定义网络包和 DPS 统计等代码。更准确地说，是当时没找到一条能直接拿来复用、覆盖我们这套肉鸽流程的完整路径。还有一次崩溃，查到的是我们自己的插件把回调签名写错了，这也不能算到 SPL 头上。</p>
+<h2>二、多屏环境又让游戏内开发面板变得很难用</h2>
+<p>我的工作环境有多个分辨率不同的屏幕。《世界》这套 ImGui 在我的环境里会画出很模糊的东西，自己看着难受，Computer Use 识别和点击也更困难。</p>
+<p>这不是一句“ImGui 不好看”。面板一旦成为开发的主要入口，字体、缩放、焦点和点击位置都会影响每一轮实验。</p>
+<p>不过，代码核对之后也不能简单归因为“SPL 没有做 DPI”。它的 <a href="https://github.com/Fexty12573/SharpPluginLoader/blob/c16380a398c3252309ba94d1c154ad58f6ab5413/mhw-cs-plugin-loader/D3DModule.cpp">D3DModule.cpp</a> 里确实有 <code class="notranslate">ImGui_ImplWin32_EnableDpiAwareness()</code>，初始化也传入了 swapchain 的 viewport 和窗口尺寸，默认字体使用了固定字号。它们提供了排查缩放问题的线索，但还不足以证明我那台多屏机器上模糊的具体根因。</p>
+<p>对我来说，实际结果已经足够糟糕：底层机制要继续逆向，开发入口又不好操作。于是放下了《世界》里几个星期的探索，改去《崛起》。</p>
+<h2>三、REFramework 带来的变化，是一套更适合探索的接口</h2>
+<p>《崛起》换成了 RE Engine，开发基础也换成 REFramework。</p>
+<p>它和 SPL 最影响我工作方式的区别，是 REFramework 对引擎类型数据库提供了统一的发现、访问和调用接口。Lua 可以按名字找类型、枚举方法和字段、取得单例，再调用对象的方法。相关接口在 <a href="https://cursey.github.io/reframework-book/api/sdk.html" rel="nofollow">SDK 文档</a> 中可以直接查到。</p>
+<p>例如，一个小探针就能先看某个管理器暴露了什么：</p>
+<div class="highlight highlight-source-lua"><pre class="notranslate"><span class="pl-k">local</span> <span class="pl-smi">t</span> <span class="pl-k">=</span> <span class="pl-smi">sdk</span>.<span class="pl-c1">find_type_definition</span>(<span class="pl-s"><span class="pl-pds">"</span>snow.stage.StageManager<span class="pl-pds">"</span></span>)
+<span class="pl-k">if</span> <span class="pl-smi">t</span> <span class="pl-k">then</span>
+    <span class="pl-k">for</span> <span class="pl-smi">_</span>, <span class="pl-smi">method</span> <span class="pl-k">in</span> <span class="pl-c1">ipairs</span>(<span class="pl-en">t</span>:<span class="pl-c1">get_methods</span>()) <span class="pl-k">do</span>
+        <span class="pl-smi">log</span>.<span class="pl-c1">info</span>(<span class="pl-en">method</span>:<span class="pl-c1">get_name</span>())
+    <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+<p>在类型信息可用的范围内，这显著改变了探索的起点。Agent 可以先查类型、方法、字段、参数，再去追对应的原生函数和状态机。SPL 同样有引擎类型能力，但它的 DTI 和手工包装，并不能简单视为这套方法／字段调用接口的等价替代。</p>
+<p>REFramework 也不是把游戏源码交到了手里。方法存在，不等于随时都能调用；名字像“复活”，也不代表它就负责首领复活。我们照样追错过列表，照样需要反汇编和实机证据来确定调用条件。</p>
+<p>但能按类型组织这些问题，已经帮了大忙。社区还有成熟的 Lua 脚本和示例，Agent 可以从别人已经跑通的代码里，提取字段访问、对象取得、hook 和恢复的写法。例如临时攻击加成，我们就参考过社区 <a href="https://github.com/Bimmr/Monster-Hunter-Rise-Reframework-Scripts-/blob/main/Buffer/autorun/Buffer/Modules/Character.lua">Buffer 模组</a> 的实现。</p>
+<p>从“每个新入口都先找地址”，走到“先沿类型和已有代码查线索”，对这个需要大量试探的项目，差别很大。</p>
+<h2>四、然后发现，Agent 仍然不擅长操作游戏</h2>
+<p>换了框架，操作问题还在。</p>
+<p><strong>GPT 的 Computer Use 连 WASD 都不会，能让游戏卡在那里一晚上。这才是我写 CLI 最初、最直接的动力。</strong></p>
+<p>这里说的是我这次开发里的实际体验：我需要它进任务、移动角色、去怪物旁边验证。它却可能长时间停在同一个场景里，折腾不明白基本移动。到了 REFramework 自动生成的 ImGui 面板，它点击也非常慢，还会因为焦点、窗口遮挡、界面判断等原因卡住。</p>
+<p>我不想一直守在旁边，替它完成这些操作。</p>
+<p>因此，我最初设想的其实还不是 CLI，而是一个后端：把 Lua 一侧的功能串出来。我自己可以在网页上点击，Agent 也可以用 <code class="notranslate">curl</code> 请求端点，不必每次都找到游戏里的按钮。</p>
+<p>这个想法受了 ReaPy 的启发。我之前接触过 REAPER，知道宿主里的脚本能力可以通过桥接，从外部进程调用。<a href="https://github.com/RomeoDespres/reapy">ReaPy</a> 本身是 REAPER ReaScript Python API 的包装，它的外部请求通过宿主中的循环处理。我借鉴的是这种分工方式，并不是移植它的网络代码。</p>
+<p>REAPER 和 REFramework 都支持 Lua，这让我最初觉得：在 Lua 里跑一个 HTTP 或 WebSocket 服务，把命令接进来，应该就能开始了。</p>
+<h2>五、Lua 没有现成网络栈，HTTP 最后进了原生插件</h2>
+<p>实际碰到的第一道坎，是 REFramework 的嵌入式 Lua 并没有现成可用的 HTTP／WebSocket 服务栈。</p>
+<p>这里也要纠正一个容易说错的细节：Lua 标准库本来就不包含 HTTP、WebSocket 或 socket 库，不能说 REFramework 把“Lua 自带的 HTTP”删掉了。它的 <a href="https://github.com/drunkenQCat/REFramework/blob/5bae4701396248a776c1de19f5be9552022295d5/src/mods/ScriptRunner.cpp#L118">ScriptRunner 初始化代码</a> 显式加载了一组 Lua 标准库，并限制了部分系统能力。LuaSocket 等东西属于另外的原生扩展，装载路径、Lua 版本和 ABI 也要另外验证。</p>
+<p>最后我们选择编译一个 REFramework 原生插件，把 HTTP 服务放到 C++ 里。插件在 Lua state 创建时注册桥接模块，Lua 通过 <code class="notranslate">require("webconsole")</code> 取得收命令和发布状态的能力。</p>
+<p>架构大致是这样：</p>
+<pre lang="text" class="notranslate"><code class="notranslate">网页 / curl / CLI
+        │ HTTP
+        ▼
+webconsole.dll 的 HTTP 线程
+        │ 有界内存队列
+        ▼
+Lua 更新回调取出命令
+        │
+        ▼
+游戏业务逻辑 / REFramework SDK
+        │
+        ▼
+发布状态快照与回执 → 外部客户端读取
+</code></pre>
+<p>HTTP 请求线程负责通信，不直接去操作游戏对象。Lua 在框架回调里执行命令，再把结果发布回去。这样网页和 Agent 共用同一套业务逻辑，也不用为每个新按钮重新做一套底层通道。</p>
+<p>后端做好以后，我开始想让 Agent 用它干更多事，于是让它再写了一个替代前端的 CLI。</p>
+<h2>六、CLI 把“点进去”变成了可编排的流程</h2>
+<p>有后端以后，CLI 的价值很快就显现出来了。</p>
+<p>之前进入游戏，要看启动画面、判断菜单、处理弹窗、选存档、等加载。Agent 很容易在某一步停住。现在可以把这些步骤组织成一个动作流程，根据真实 UI 状态决定下一步，并检查执行后的变化：</p>
+<div class="highlight highlight-source-powershell"><pre class="notranslate">node cli<span class="pl-k">/</span>mhr.mjs doctor <span class="pl-k">--</span>json
+node cli<span class="pl-k">/</span>mhr.mjs game enter <span class="pl-k">--</span>slot <span class="pl-c1">1</span> <span class="pl-k">--</span>timeout <span class="pl-c1">120</span> <span class="pl-k">--</span>json
+node cli<span class="pl-k">/</span>mhr.mjs state <span class="pl-k">--</span>json</pre></div>
+<p><code class="notranslate">game enter</code> 内部也不是固定等几秒、按一串键。它观察标题和存档界面的状态，在能识别的场景提交相应操作；遇到未知窗口就停下。请求携带场景 token，后端再检查一次，避免在画面已经变化以后继续执行旧操作。</p>
+<p>这条路径已有从启动界面进入存档、到村庄的实测记录。之前要花很久很久才能进去的游戏，终于可以交给一段可复用的流程。</p>
+<p>再往后，选波次、开无敌、定向传送、购买增益、读取怪物 UID 和保存采样，也逐渐变成明确的命令。CLI 给 Agent 的帮助，开始超出“替代难点的按钮”：它能把动作、等待条件和结果记录连接起来。</p>
+<p>当然，协议本身也要认真做。我们遇到过击杀已经生效，回执却一直停在 <code class="notranslate">queued</code> 的问题。HTTP 200、命令受理和游戏操作完成，需要分别表达。否则 Agent 可能把成功当失败，再错误地重复一次。</p>
+<h2>七、为了不再点 Reset scripts，我 fork 了 REFramework</h2>
+<p>还有一个绕不开的按钮：Reset scripts。</p>
+<p>REFramework 支持重载脚本，但当时用的上游版本没有把这个操作暴露成插件可调用的 API。修改了 Lua，仍得回游戏内点击 ScriptRunner 的 Reset scripts。这个步骤又把开发流程拉回了慢吞吞的界面操作。</p>
+<p>最初我只是想，把这个按钮接到后端。看完实现以后，决定直接 fork 一份框架，把缺少的入口补出来。</p>
+<p>第一个补丁是 <a href="https://github.com/drunkenQCat/REFramework/commit/9e06c961ab5f068dd9be5b5a1f09430c8a198625"><code class="notranslate">request_script_reset</code></a>。它不让 HTTP 线程直接销毁 Lua state，而是设置一个原子请求标记，交给框架的 <code class="notranslate">on_frame</code> 消费，沿用原来的 reset 流程：通知 state 销毁、清理并重建 Lua state，再运行 autorun。</p>
+<p>对应到外部接口，就是：</p>
+<div class="highlight highlight-source-powershell"><pre class="notranslate"><span class="pl-c1">curl.exe</span> <span class="pl-k">-</span>X POST http:<span class="pl-k">//</span><span class="pl-c1">127.0</span>.<span class="pl-c1">0.1</span>:<span class="pl-c1">11777</span><span class="pl-k">/</span>api<span class="pl-k">/</span>script<span class="pl-k">/</span>reset</pre></div>
+<p>既然已经 fork 了，我又问 Agent：还有什么能力，能方便你继续开发？</p>
+<p>它接着提出两件事：<strong>从外部运行指定 Lua 脚本，以及读取脚本报错。</strong></p>
+<p>于是又补了两个接口：</p>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>框架插件 API</th>
+<th>实现方式</th>
+<th>后端入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code class="notranslate">request_script_reset()</code></td>
+<td>原子标记，由框架回调执行完整 reset</td>
+<td><code class="notranslate">POST /api/script/reset</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">run_script(path)</code></td>
+<td>加锁加入脚本队列，在现有主 Lua state 执行</td>
+<td><code class="notranslate">POST /api/script/run</code></td>
+</tr>
+<tr>
+<td><code class="notranslate">last_script_error(out, size)</code></td>
+<td>读取 ScriptRunner 保存的错误文本，复制到调用者缓冲区</td>
+<td><code class="notranslate">GET /api/script/error</code></td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p>后两项实现分别在 <a href="https://github.com/drunkenQCat/REFramework/commit/25d0aef8755a588b74aa7e6c54b3e71b72ff20bb">run_script 提交</a>和 <a href="https://github.com/drunkenQCat/REFramework/commit/2e7ce5b97dce68cc742b5c80ad421213c551c803">last_script_error 提交</a>。新增函数指针追加在插件函数表尾部，尽量保持已有字段的位置。</p>
+<p>这里运行一个新探针，不必每次都 reset 全部业务脚本。Agent 可以上传脚本、执行、取回报告；脚本如果在发布报告之前就语法报错，还能从框架的错误通道读到原因。</p>
+<div class="highlight highlight-source-powershell"><pre class="notranslate">node cli<span class="pl-k">/</span>mhr.mjs game run<span class="pl-k">-</span>script probe.lua <span class="pl-k">--</span>timeout <span class="pl-c1">20</span> <span class="pl-k">--</span>json
+node cli<span class="pl-k">/</span>mhr.mjs game last<span class="pl-k">-</span>error <span class="pl-k">--</span>json</pre></div>
+<p>需要完整清理回调和 hook 时，仍然使用 reset。<code class="notranslate">run-script</code> 是在现有 state 里运行代码，不会自动撤销旧脚本留下的东西；这两种能力各有用途。</p>
+<p>替换框架 DLL 本身需要重新启动游戏，但之后日常写探针就不再被文件选择框和 Reset 按钮卡住了。这一步补齐以后，Agent 写探针、看错误、修正、再跑的速度才真正上来了。</p>
+<h2>八、如果当初给 SPL 也补一个 CLI，会不会更好？</h2>
+<p>这个问题值得认真回答。</p>
+<p><strong>很可能会改善很多，而且没有证据表明 SPL 做不了。</strong></p>
+<p>SPL 的 C#／.NET 环境适合做 HTTP 服务，也可以把外部请求排入游戏更新回调。它的 <a href="https://github.com/Fexty12573/SharpPluginLoader/blob/c16380a398c3252309ba94d1c154ad58f6ab5413/SharpPluginLoader.Core/PluginManager.cs">PluginManager</a> 本来就用 <code class="notranslate">FileSystemWatcher</code> 监控程序集变化、重载插件。因此，热重载也不是 REFramework 独有的优势。</p>
+<p>甚至旧项目里已经有一个 ASP.NET 的模拟服务，把肉鸽 Core 暴露成网页 API。不过它操作的是模拟状态，没有接进真实游戏，不能当成游戏后端已经打通。</p>
+<p>如果当时把这条路继续接下去，至少可以绕开模糊的 ImGui，改善重复操作、状态采集和实验编排。单论宿主里写 HTTP 服务这件事，.NET 还有很成熟的现成设施。</p>
+<p>但 CLI 只能让已经知道怎么做的事情更容易调用。它不会替我们找出未知函数的地址，也不会补出首领生成流程里还没弄清的资源和生命周期协议。</p>
+<p>我没有做两套框架的同条件对照实验，所以不能断言“给 SPL 补 CLI 也救不了”，更不能编一个效率倍数。对这次项目来说，换到 REFramework 的收益，是引擎通用的探索接口、社区可借鉴的代码，以及后面自己补出来的远程控制工具链共同作用的结果。</p>
+<p>现在看，值得早点投入的有两件事：先选一个能支撑目标复杂度的框架，再把日常开发需要的控制面做好。</p>
+<p>从外部发起动作、读取真实状态、拿到报错、反复做一个小实验——这些事情接通以后，Agent 才有机会把时间花在游戏机制上，而不是继续盯着村子看一晚上。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+
+</div>
+    <div id="footer"><div id="footer1">Copyright © <span id="copyrightYear"></span> <a href="https://drunkenQCat.github.io">量子猫的酿造小屋</a></div>
+<div id="footer2">
+    <span id="runday"></span><span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a></span>
+</div>
+
+<script>
+var now=new Date();
+document.getElementById("copyrightYear").innerHTML=now.getFullYear();
+
+if(""!=""){
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("runday").innerHTML="网站运行 "+diffDay+" 天"+" • ";
+}
+</script></div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z', 'copy': 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z', 'check': 'M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.disabled=true;
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","drunkenQCat/drunkenQCat.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const createClipboardHTML = (codeContent, additionalClasses = '') => `
+        <pre class="notranslate"><code class="notranslate">${codeContent}</code></pre>
+        <div class="clipboard-container position-absolute right-0 top-0 ${additionalClasses}">
+            <clipboard-copy class="ClipboardButton btn m-2 p-0" role="button" style="display: inherit;">
+                <svg height="16" width="16" class="octicon octicon-copy m-2"><path d="${IconList["copy"]}"></path></svg>
+                <svg height="16" width="16" class="octicon octicon-check color-fg-success m-2 d-none"><path d="${IconList["check"]}"></path></svg>
+            </clipboard-copy>
+            <div class="copy-feedback">Copied!</div>
+        </div>
+    `;
+
+    const handleCodeElements = (selector = '') => {
+        document.querySelectorAll(selector).forEach(codeElement => {
+            const codeContent = codeElement.innerHTML;
+            const newStructure = document.createElement('div');
+            newStructure.className = 'snippet-clipboard-content position-relative overflow-auto';
+            newStructure.innerHTML = createClipboardHTML(codeContent);
+
+            const parentElement = codeElement.parentElement;
+            if (selector.includes('highlight')) {
+                parentElement.insertBefore(newStructure, codeElement.nextSibling);
+                parentElement.removeChild(codeElement);
+            } else {
+                parentElement.parentElement.replaceChild(newStructure, parentElement);
+            }
+        });
+    };
+
+    handleCodeElements('pre.notranslate > code.notranslate');
+    handleCodeElements('div.highlight > pre.notranslate');
+
+    let currentFeedback = null;
+    document.querySelectorAll('clipboard-copy').forEach(copyButton => {
+        copyButton.addEventListener('click', () => {
+            const codeContent = copyButton.closest('.snippet-clipboard-content').innerText;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const copyIcon = copyButton.querySelector('.octicon-copy');
+            const checkIcon = copyButton.querySelector('.octicon-check');
+            const copyFeedback = copyButton.nextElementSibling;
+
+            if (currentFeedback && currentFeedback !== copyFeedback) {currentFeedback.style.display = 'none';}
+            currentFeedback = copyFeedback;
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copyFeedback.style.display = 'block';
+            copyButton.style.borderColor = 'var(--color-success-fg)';
+
+            setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyFeedback.style.display = 'none';
+                copyButton.style.borderColor = '';
+            }, 2000);
+        });
+    });
+});
+
+</script>
+
+
+</html>
